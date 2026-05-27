@@ -1,7 +1,12 @@
 venv
-__pycache__/
-*.pyc
 .venv/
 .env
+.env.*
+db.sqlite3
+*.pyc
+__pycache__/
 .DS_Store
+staticfiles/
+media/uploads/
+*.log
 CLAUDE.md

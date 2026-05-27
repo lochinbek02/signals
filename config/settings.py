@@ -24,12 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-your-secret-key-here')
+SECRET_KEY = env.str('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['.onrender.com', 'localhost', '127.0.0.1'])
 ENVIRONMENT = env.str("ENVIRONMENT", default="development")
 # INTERNAL_IPS=(
 #     '127.0.0.1',
@@ -37,14 +37,12 @@ ENVIRONMENT = env.str("ENVIRONMENT", default="development")
 # )
 
 # Application definition
-CSRF_TRUSTED_ORIGINS = [
-    'https://signalpro.onrender.com',
-    'http://signalpro.onrender.com',
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
     'https://*.onrender.com',
     'http://localhost:8000',
-    'http://127.0.0.1:8000'
-]
-CSRF_COOKIE_SECURE = True
+    'http://127.0.0.1:8000',
+])
+CSRF_COOKIE_SECURE = not DEBUG
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -107,19 +105,13 @@ DATABASES = {
     }
 }
 
-# # PostgreSQL Database Setup for Production or Local PostgreSQL
-# DATABASE_URL = env.str('DATABASE_URL', None)
-# POSTGRES_LOCALLY = env.bool('POSTGRES_LOCALLY', default=False)
-
-# if ENVIRONMENT == 'production' or POSTGRES_LOCALLY:
-#     if DATABASE_URL:
-#         DATABASES['default'] = dj_database_url.parse(
-#             DATABASE_URL,
-#             conn_max_age=600,  # Optimize database connection pooling
-#             ssl_require=True if ENVIRONMENT == 'production' else False
-#         )
-#     else:
-#         raise ValueError("DATABASE_URL must be set for production or local PostgreSQL.")
+DATABASE_URL = env.str('DATABASE_URL', default=None)
+if DATABASE_URL:
+    DATABASES['default'] = dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True,
+    )
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
