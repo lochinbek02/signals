@@ -25,13 +25,8 @@ import requests
 import base64
 from django.core.files.storage import default_storage
 from django.views.decorators.csrf import csrf_exempt
-# Sklearn library
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
+# Sklearn imports are deferred to upload_csv to reduce memory footprint
+# on small instances (Render free tier has 512 MB RAM limit).
 from django.core.files.storage import default_storage
 
 # 1. Zero Crossing Rate (ZCR)
@@ -585,6 +580,7 @@ def train_and_evaluate_model(model, X_train, X_test, y_train, y_test):
     """
     Ushbu funksiya modelni o'qitadi va baholaydi.
     """
+    from sklearn.metrics import accuracy_score, classification_report
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
@@ -594,6 +590,13 @@ def train_and_evaluate_model(model, X_train, X_test, y_train, y_test):
 @csrf_exempt
 def upload_csv(request):
     if request.method == 'POST' and request.FILES.get('file'):
+        # Lazy import sklearn here to keep worker memory low at boot
+        from sklearn.model_selection import train_test_split
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.svm import SVC
+        from sklearn.neighbors import KNeighborsClassifier
+
         csv_file = request.FILES['file']
 
         # Faqat CSV fayl qabul qilishni tekshirish
